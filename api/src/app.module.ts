@@ -10,6 +10,7 @@ import { Project } from './projects/entities/project.entity';
 import { Note } from './notes/entities/note.entity';
 import { Interpretation } from './interpretations/entities/interpretation.entity';
 import { Resource } from './resources/entities/resource.entity';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { Resource } from './resources/entities/resource.entity';
     InterpretationsModule,
     ResourcesModule,
     SeedsModule,
+    AiModule,
   ],
   controllers: [],
   providers: [],
