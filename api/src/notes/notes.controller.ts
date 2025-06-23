@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
@@ -18,9 +33,18 @@ export class NotesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Récupérer toutes les notes ou les notes d\'un projet spécifique' })
-  @ApiQuery({ name: 'project_id', required: false, description: 'ID du projet pour filtrer les notes' })
-  @ApiResponse({ status: 200, description: 'Liste des notes récupérée avec succès' })
+  @ApiOperation({
+    summary: "Récupérer toutes les notes ou les notes d'un projet spécifique",
+  })
+  @ApiQuery({
+    name: 'project_id',
+    required: false,
+    description: 'ID du projet pour filtrer les notes',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des notes récupérée avec succès',
+  })
   findAll(@Query('project_id') projectId?: string) {
     if (projectId) {
       return this.notesService.findByProject(projectId);
