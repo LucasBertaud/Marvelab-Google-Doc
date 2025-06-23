@@ -1,26 +1,58 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateInterpretationDto } from './dto/create-interpretation.dto';
 import { UpdateInterpretationDto } from './dto/update-interpretation.dto';
+import { Interpretation } from './entities/interpretation.entity';
 
 @Injectable()
 export class InterpretationsService {
-  create(createInterpretationDto: CreateInterpretationDto) {
-    return 'This action adds a new interpretation';
+  constructor(
+    @InjectRepository(Interpretation)
+    private interpretationRepository: Repository<Interpretation>,
+  ) {}
+
+  async create(createInterpretationDto: CreateInterpretationDto): Promise<Interpretation> {
+    const interpretation = this.interpretationRepository.create(createInterpretationDto);
+    return await this.interpretationRepository.save(interpretation);
   }
 
-  findAll() {
-    return `This action returns all interpretations`;
+  async findAll(): Promise<Interpretation[]> {
+    return await this.interpretationRepository.find({
+      relations: ['project'],
+      order: { created_at: 'DESC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} interpretation`;
+  async findByProject(projectId: string): Promise<Interpretation[]> {
+    return await this.interpretationRepository.find({
+      where: { project_id: projectId },
+      relations: ['project'],
+      order: { created_at: 'DESC' },
+    });
   }
 
-  update(id: number, updateInterpretationDto: UpdateInterpretationDto) {
-    return `This action updates a #${id} interpretation`;
+  async findOne(id: string): Promise<Interpretation> {
+    const interpretation = await this.interpretationRepository.findOne({
+      where: { id },
+      relations: ['project'],
+    });
+    
+    if (!interpretation) {
+      throw new NotFoundException(`Interprétation avec l'ID ${id} non trouvée`);
+    }
+    
+    return interpretation;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} interpretation`;
+  async update(id: string, updateInterpretationDto: UpdateInterpretationDto): Promise<Interpretation> {
+    const interpretation = await this.findOne(id);
+    Object.assign(interpretation, updateInterpretationDto);
+    return await this.interpretationRepository.save(interpretation);
+  }
+
+  async remove(id: string): Promise<void> {
+    const interpretation = await this.findOne(id);
+    await this.interpretationRepository.remove(interpretation);
   }
 }

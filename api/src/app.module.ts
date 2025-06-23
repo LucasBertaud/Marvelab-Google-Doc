@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ProjectsModule } from './projects/projects.module';
 import { NotesModule } from './notes/notes.module';
 import { InterpretationsModule } from './interpretations/interpretations.module';
 import { ResourcesModule } from './resources/resources.module';
+import { SeedsModule } from './seeds/seeds.module';
 import { Project } from './projects/entities/project.entity';
 import { Note } from './notes/entities/note.entity';
 import { Interpretation } from './interpretations/entities/interpretation.entity';
@@ -19,20 +18,21 @@ import { Resource } from './resources/entities/resource.entity';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 5432,
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'root',
+      database: process.env.DB_DATABASE || 'marvelab',
       entities: [Project, Note, Interpretation, Resource],
-      synchronize: process.env.NODE_ENV === 'development',
+      synchronize: process.env.NODE_ENV !== 'production',
     }),
     ProjectsModule,
     NotesModule,
     InterpretationsModule,
     ResourcesModule,
+    SeedsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

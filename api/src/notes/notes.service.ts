@@ -1,26 +1,58 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
+import { Note } from './entities/note.entity';
 
 @Injectable()
 export class NotesService {
-  create(createNoteDto: CreateNoteDto) {
-    return 'This action adds a new note';
+  constructor(
+    @InjectRepository(Note)
+    private noteRepository: Repository<Note>,
+  ) {}
+
+  async create(createNoteDto: CreateNoteDto): Promise<Note> {
+    const note = this.noteRepository.create(createNoteDto);
+    return await this.noteRepository.save(note);
   }
 
-  findAll() {
-    return `This action returns all notes`;
+  async findAll(): Promise<Note[]> {
+    return await this.noteRepository.find({
+      relations: ['project'],
+      order: { created_at: 'DESC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} note`;
+  async findByProject(projectId: string): Promise<Note[]> {
+    return await this.noteRepository.find({
+      where: { project_id: projectId },
+      relations: ['project'],
+      order: { created_at: 'DESC' },
+    });
   }
 
-  update(id: number, updateNoteDto: UpdateNoteDto) {
-    return `This action updates a #${id} note`;
+  async findOne(id: string): Promise<Note> {
+    const note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['project'],
+    });
+    
+    if (!note) {
+      throw new NotFoundException(`Note avec l'ID ${id} non trouvée`);
+    }
+    
+    return note;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} note`;
+  async update(id: string, updateNoteDto: UpdateNoteDto): Promise<Note> {
+    const note = await this.findOne(id);
+    Object.assign(note, updateNoteDto);
+    return await this.noteRepository.save(note);
+  }
+
+  async remove(id: string): Promise<void> {
+    const note = await this.findOne(id);
+    await this.noteRepository.remove(note);
   }
 }
