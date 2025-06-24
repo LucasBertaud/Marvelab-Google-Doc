@@ -761,3 +761,209 @@ function generateAndInsertAI(prompt, projectId, projectTitle) {
     };
   }
 }
+
+/**
+ * Créer une page de garde professionnelle avec sommaire automatique
+ */
+function createCoverPageWithSummary(projectId) {
+  try {
+    const project = getProjectDetailsForSidebar(projectId);
+    if (!project.success) {
+      return { success: false, error: project.error };
+    }
+    
+    const projectData = project.data;
+    const doc = DocumentApp.getActiveDocument();
+    const body = doc.getBody();
+    
+    // Vider le document
+    body.clear();
+    
+    // === PAGE DE GARDE ===
+    
+    // Logo/Header décoratif
+    const decorHeader = body.appendParagraph("🔬 ═══════════════════════════════════════ 🔬");
+    decorHeader.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    decorHeader.getChild(0).asText()
+      .setForegroundColor("#2E3440")
+      .setBold(true)
+      .setFontSize(14);
+    
+    body.appendParagraph(""); // Espace
+    
+    // Titre principal
+    const titlePara = body.appendParagraph("RAPPORT DE RECHERCHE");
+    titlePara.setHeading(DocumentApp.ParagraphHeading.TITLE);
+    titlePara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    titlePara.getChild(0).asText()
+      .setForegroundColor("#2E3440")
+      .setBold(true)
+      .setFontSize(24);
+    
+    body.appendParagraph(""); // Espace
+    
+    // Titre du projet
+    const projectTitlePara = body.appendParagraph(projectData.title);
+    projectTitlePara.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    projectTitlePara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    projectTitlePara.getChild(0).asText()
+      .setForegroundColor("#5E81AC")
+      .setBold(true)
+      .setFontSize(20);
+    
+    // Description du projet
+    if (projectData.description) {
+      body.appendParagraph(""); // Espace
+      const descPara = body.appendParagraph(projectData.description);
+      descPara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      descPara.getChild(0).asText()
+        .setForegroundColor("#4C566A")
+        .setItalic(true)
+        .setFontSize(12);
+    }
+    
+    body.appendParagraph(""); // Espace
+    body.appendParagraph(""); // Espace
+    
+    // Informations du projet dans un tableau élégant
+    const infoTable = body.appendTable([
+      ["📅 Date de création", projectData.created_at ? new Date(projectData.created_at).toLocaleDateString("fr-FR") : "Non spécifiée"],
+      ["🔬 Type de recherche", projectData.research_type || "Recherche générale"],
+      ["📊 Statut", projectData.status || "En cours"],
+      ["📄 Document généré", new Date().toLocaleDateString("fr-FR") + " à " + new Date().toLocaleTimeString("fr-FR", {hour: '2-digit', minute:'2-digit'})]
+    ]);
+    
+    // Style du tableau d'informations
+    for (let i = 0; i < infoTable.getNumRows(); i++) {
+      const row = infoTable.getRow(i);
+      const labelCell = row.getCell(0);
+      const valueCell = row.getCell(1);
+      
+      // Style des labels
+      labelCell.setBackgroundColor("#ECEFF4");
+      labelCell.getChild(0).asText()
+        .setForegroundColor("#2E3440")
+        .setBold(true)
+        .setFontSize(11);
+      labelCell.setPaddingTop(8);
+      labelCell.setPaddingBottom(8);
+      labelCell.setPaddingLeft(12);
+      labelCell.setPaddingRight(12);
+      
+      // Style des valeurs
+      valueCell.setBackgroundColor("#F9F9F9");
+      valueCell.getChild(0).asText()
+        .setForegroundColor("#4C566A")
+        .setFontSize(11);
+      valueCell.setPaddingTop(8);
+      valueCell.setPaddingBottom(8);
+      valueCell.setPaddingLeft(12);
+      valueCell.setPaddingRight(12);
+    }
+    
+    infoTable.setBorderColor("#D8DEE9");
+    infoTable.setBorderWidth(1);
+    
+    // Saut de page
+    body.appendPageBreak();
+    
+    // === SOMMAIRE AUTOMATIQUE ===
+    
+    const summaryTitle = body.appendParagraph("📋 SOMMAIRE");
+    summaryTitle.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    summaryTitle.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    summaryTitle.getChild(0).asText()
+      .setForegroundColor("#2E3440")
+      .setBold(true)
+      .setFontSize(18);
+    
+    body.appendParagraph(""); // Espace
+    
+    // Ligne décorative
+    const decorLine = body.appendParagraph("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    decorLine.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    decorLine.getChild(0).asText()
+      .setForegroundColor("#5E81AC")
+      .setBold(true);
+    
+    body.appendParagraph(""); // Espace
+    
+    // Compter les éléments pour le sommaire
+    const notesCount = projectData.notes ? projectData.notes.length : 0;
+    const interpretationsCount = projectData.interpretations ? projectData.interpretations.length : 0;
+    const resourcesCount = projectData.resources ? projectData.resources.length : 0;
+    
+    // Tableau du sommaire
+    const summaryTable = body.appendTable([
+      ["1.", "Informations du projet", "Page 1"],
+      ["2.", "Notes de recherche", `${notesCount} élément(s)`],
+      ["3.", "Interprétations", `${interpretationsCount} élément(s)`],
+      ["4.", "Ressources", `${resourcesCount} élément(s)`],
+      ["5.", "Analyses IA", "Selon besoins"],
+      ["6.", "Conclusions", "À compléter"]
+    ]);
+    
+    // Style du sommaire
+    for (let i = 0; i < summaryTable.getNumRows(); i++) {
+      const row = summaryTable.getRow(i);
+      
+      // Numéro
+      const numCell = row.getCell(0);
+      numCell.setBackgroundColor("#5E81AC");
+      numCell.getChild(0).asText()
+        .setForegroundColor("#FFFFFF")
+        .setBold(true)
+        .setFontSize(12);
+      numCell.setPaddingTop(10);
+      numCell.setPaddingBottom(10);
+      numCell.setPaddingLeft(8);
+      numCell.setPaddingRight(8);
+      
+      // Titre de section
+      const titleCell = row.getCell(1);
+      titleCell.setBackgroundColor("#ECEFF4");
+      titleCell.getChild(0).asText()
+        .setForegroundColor("#2E3440")
+        .setBold(true)
+        .setFontSize(12);
+      titleCell.setPaddingTop(10);
+      titleCell.setPaddingBottom(10);
+      titleCell.setPaddingLeft(16);
+      titleCell.setPaddingRight(16);
+      
+      // Info/Page
+      const infoCell = row.getCell(2);
+      infoCell.setBackgroundColor("#F9F9F9");
+      infoCell.getChild(0).asText()
+        .setForegroundColor("#4C566A")
+        .setItalic(true)
+        .setFontSize(10);
+      infoCell.setPaddingTop(10);
+      infoCell.setPaddingBottom(10);
+      infoCell.setPaddingLeft(12);
+      infoCell.setPaddingRight(12);
+    }
+    
+    summaryTable.setBorderColor("#D8DEE9");
+    summaryTable.setBorderWidth(1);
+    
+    body.appendParagraph(""); // Espace
+    body.appendParagraph(""); // Espace
+    
+    // Note de bas de page
+    const footerNote = body.appendParagraph("📌 Ce document a été généré automatiquement par l'assistant Marvelab");
+    footerNote.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    footerNote.getChild(0).asText()
+      .setForegroundColor("#8FBCBB")
+      .setItalic(true)
+      .setFontSize(9);
+    
+    // Saut de page pour commencer le contenu
+    body.appendPageBreak();
+    
+    return { success: true, message: "Page de garde et sommaire créés avec succès!" };
+    
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}

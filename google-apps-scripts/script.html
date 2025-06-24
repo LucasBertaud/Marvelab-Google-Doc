@@ -53,11 +53,13 @@
     if (projectIndex === "") {
       document.getElementById("projectDetails").style.display = "none";
       document.getElementById("insertProjectBtn").disabled = true;
+      document.getElementById("createCoverBtn").disabled = true;
       return;
     }
 
     const project = projects[projectIndex];
     document.getElementById("insertProjectBtn").disabled = false;
+    document.getElementById("createCoverBtn").disabled = false;
 
     showStatus("Chargement des détails...", false);
 
@@ -230,6 +232,32 @@
         showStatus("Erreur: " + error.message, true)
       )
       .insertProject(currentProject);
+  }
+
+  // Créer une page de garde avec sommaire
+  function createCoverPage() {
+    if (!currentProject) return;
+
+    showStatus("Création de la page de garde...", false);
+
+    google.script.run
+      .withSuccessHandler(onCoverPageCreated)
+      .withFailureHandler(onCoverPageError)
+      .createCoverPageWithSummary(currentProject.id);
+  }
+
+  // Callback: page de garde créée
+  function onCoverPageCreated(result) {
+    if (result.success) {
+      showStatus("📄 Page de garde créée avec succès!", false);
+    } else {
+      showStatus(`Erreur: ${result.error}`, true);
+    }
+  }
+
+  // Callback: erreur page de garde
+  function onCoverPageError(error) {
+    showStatus(`Erreur: ${error.message}`, true);
   }
 
   // Insérer une note
