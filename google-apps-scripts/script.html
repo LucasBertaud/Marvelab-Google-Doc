@@ -1,0 +1,328 @@
+<script>
+  let currentProject = null;
+  let projects = [];
+
+  // Charger l'application
+  document.addEventListener("DOMContentLoaded", function () {
+    loadProjects();
+  });
+
+  // Charger tous les projets
+  function loadProjects() {
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("error").style.display = "none";
+    document.getElementById("content").style.display = "none";
+
+    google.script.run
+      .withSuccessHandler(onProjectsLoaded)
+      .withFailureHandler(onError)
+      .getProjectsForSidebar();
+  }
+
+  // Callback: projets chargés
+  function onProjectsLoaded(result) {
+    document.getElementById("loading").style.display = "none";
+
+    if (result.success) {
+      projects = result.data;
+      populateProjectSelect(projects);
+      document.getElementById("content").style.display = "block";
+    } else {
+      showError(result.error);
+    }
+  }
+
+  // Peupler la liste des projets
+  function populateProjectSelect(projects) {
+    const select = document.getElementById("projectSelect");
+    select.innerHTML = '<option value="">-- Choisir un projet --</option>';
+
+    projects.forEach((project, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = project.title;
+      select.appendChild(option);
+    });
+  }
+
+  // Charger les détails d'un projet
+  function loadProjectDetails() {
+    const select = document.getElementById("projectSelect");
+    const projectIndex = select.value;
+
+    if (projectIndex === "") {
+      document.getElementById("projectDetails").style.display = "none";
+      document.getElementById("insertProjectBtn").disabled = true;
+      return;
+    }
+
+    const project = projects[projectIndex];
+    document.getElementById("insertProjectBtn").disabled = false;
+
+    showStatus("Chargement des détails...", false);
+
+    google.script.run
+      .withSuccessHandler(onProjectDetailsLoaded)
+      .withFailureHandler(onError)
+      .getProjectDetailsForSidebar(project.id);
+  }
+
+  // Callback: détails du projet chargés
+  function onProjectDetailsLoaded(result) {
+    if (result.success) {
+      currentProject = result.data;
+      displayProjectDetails(currentProject);
+      document.getElementById("projectDetails").style.display = "block";
+      showStatus("Projet chargé avec données debug !", false);
+    } else {
+      showError(result.error);
+    }
+  }
+
+  // Afficher les détails du projet
+  function displayProjectDetails(project) {
+    // Debug: log du projet dans la console
+    console.log("Projet affiché:", project);
+
+    // Informations du projet
+    const projectInfo = document.getElementById("projectInfo");
+    projectInfo.innerHTML = `
+      <h4>${project.title}</h4>
+      <p><strong>Description:</strong> ${project.description}</p>
+      <p><strong>Créé le:</strong> ${new Date(
+        project.created_at
+      ).toLocaleDateString("fr-FR")}</p>
+      <p><strong>ID:</strong> ${project.id}</p>
+    `;
+
+    // Notes
+    const notesList = document.getElementById("notesList");
+    const notesCount = document.getElementById("notesCount");
+    const notes = project.notes || [];
+
+    notesCount.textContent = notes.length;
+    notesList.innerHTML = "";
+
+    notes.forEach((note, index) => {
+      const item = createItemElement(note, "note", index);
+      notesList.appendChild(item);
+    });
+
+    // Interprétations
+    const interpretationsList = document.getElementById("interpretationsList");
+    const interpretationsCount = document.getElementById(
+      "interpretationsCount"
+    );
+    const interpretations = project.interpretations || [];
+
+    interpretationsCount.textContent = interpretations.length;
+    interpretationsList.innerHTML = "";
+
+    interpretations.forEach((interpretation, index) => {
+      const item = createItemElement(interpretation, "interpretation", index);
+      interpretationsList.appendChild(item);
+    });
+
+    // Ressources avec debug
+    const resourcesList = document.getElementById("resourcesList");
+    const resourcesCount = document.getElementById("resourcesCount");
+    const resources = project.resources || [];
+
+    console.log("Ressources à afficher:", resources);
+
+    resourcesCount.textContent = resources.length;
+    resourcesList.innerHTML = "";
+
+    resources.forEach((resource, index) => {
+      console.log(`Ressource ${index}:`, resource);
+      const item = createResourceElement(resource, index);
+      resourcesList.appendChild(item);
+    });
+  }
+
+  // Créer un élément pour note ou interprétation
+  function createItemElement(item, type, index) {
+    const div = document.createElement("div");
+    div.className = `item item-${type}`;
+
+    const icon = type === "note" ? "📝" : "🧠";
+    const typeName = type === "note" ? "Note" : "Interprétation";
+    const color = type === "note" ? "blue" : "green";
+
+    div.innerHTML = `
+      <div class="item-header">
+        <span><strong>${icon} ${typeName} ${index + 1}</strong></span>
+        <button class="btn btn-insert btn-${color}" onclick="insert${
+      type.charAt(0).toUpperCase() + type.slice(1)
+    }(${index})">
+          📥 Insérer
+        </button>
+      </div>
+      <div class="item-content">
+        ${
+          item.content.length > 120
+            ? item.content.substring(0, 120) + "..."
+            : item.content
+        }
+        <div class="item-meta">📅 ${new Date(item.created_at).toLocaleString(
+          "fr-FR"
+        )}</div>
+      </div>
+    `;
+
+    return div;
+  }
+
+  // Créer un élément pour ressource avec affichage de l'URL
+  function createResourceElement(resource, index) {
+    const div = document.createElement("div");
+    div.className = "item item-resource";
+
+    const typeIcon =
+      resource.type === "image"
+        ? "🖼️"
+        : resource.type === "graph"
+        ? "📊"
+        : "📎";
+
+    // Debug dans la console
+    console.log(`Création élément ressource ${index}:`, {
+      type: resource.type,
+      url: resource.url,
+      alt_text: resource.alt_text,
+    });
+
+    div.innerHTML = `
+      <div class="item-header">
+        <span><strong>${typeIcon} Ressource ${
+      index + 1
+    }</strong> <span class="resource-type">${resource.type}</span></span>
+        <button class="btn btn-insert btn-orange" onclick="insertResource(${index})">
+          📥 Insérer avec image
+        </button>
+      </div>
+      <div class="item-content">
+        <strong>Description:</strong> ${
+          resource.alt_text || "Aucune description"
+        }<br>
+        <strong>Type:</strong> ${resource.type}<br>
+        <strong>URL:</strong> <span class="url-display">${
+          resource.url || "Aucune URL"
+        }</span>
+        <div class="item-meta">📅 ${new Date(
+          resource.created_at
+        ).toLocaleString("fr-FR")}</div>
+      </div>
+    `;
+
+    return div;
+  }
+
+  // Insérer le projet sélectionné
+  function insertSelectedProject() {
+    if (!currentProject) return;
+
+    showStatus("Insertion du projet...", false);
+
+    google.script.run
+      .withSuccessHandler(() => showStatus("Projet inséré !", false))
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertProject(currentProject);
+  }
+
+  // Insérer une note
+  function insertNote(index) {
+    if (
+      !currentProject ||
+      !currentProject.notes ||
+      !currentProject.notes[index]
+    )
+      return;
+
+    const note = currentProject.notes[index];
+    showStatus("Insertion de la note avec style bleu...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Note insérée avec style coloré !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertNote(note, currentProject.title);
+  }
+
+  // Insérer une interprétation
+  function insertInterpretation(index) {
+    if (
+      !currentProject ||
+      !currentProject.interpretations ||
+      !currentProject.interpretations[index]
+    )
+      return;
+
+    const interpretation = currentProject.interpretations[index];
+    showStatus("Insertion de l'interprétation avec style vert...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Interprétation insérée avec style coloré !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertInterpretation(interpretation, currentProject.title);
+  }
+
+  // Insérer une ressource
+  function insertResource(index) {
+    if (
+      !currentProject ||
+      !currentProject.resources ||
+      !currentProject.resources[index]
+    )
+      return;
+
+    const resource = currentProject.resources[index];
+    console.log("Insertion ressource:", resource);
+    showStatus(
+      "Insertion de la ressource avec conversion URL → Image...",
+      false
+    );
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Ressource insérée avec image !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertResource(resource, currentProject.title);
+  }
+
+  // Afficher une erreur
+  function showError(message) {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("content").style.display = "none";
+    document.getElementById("error").style.display = "block";
+    document.getElementById("error-message").textContent = message;
+  }
+
+  // Callback d'erreur générique
+  function onError(error) {
+    showError(error.message || "Une erreur est survenue");
+  }
+
+  // Afficher un statut
+  function showStatus(message, isError) {
+    const status = document.getElementById("status");
+    status.textContent = message;
+    status.className = isError ? "status error show" : "status show";
+
+    setTimeout(() => {
+      status.className = status.className.replace("show", "");
+    }, 3000);
+  }
+</script>

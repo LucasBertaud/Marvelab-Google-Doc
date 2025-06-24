@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marvelab Assistant</title>
+    <?!= include('styles'); ?>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <div class="header">
+        <h2>🔬 Marvelab Assistant</h2>
+        <p class="subtitle">Style coloré + Images automatiques</p>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Chargement des projets...</p>
+      </div>
+
+      <!-- Error -->
+      <div id="error" class="error" style="display: none">
+        <p id="error-message"></p>
+        <button onclick="loadProjects()" class="btn btn-primary">
+          Réessayer
+        </button>
+      </div>
+
+      <!-- Main Content -->
+      <div id="content" style="display: none">
+        <!-- Project Selection -->
+        <div class="section">
+          <h3>📁 Sélection du projet</h3>
+          <select
+            id="projectSelect"
+            class="select"
+            onchange="loadProjectDetails()"
+          >
+            <option value="">-- Choisir un projet --</option>
+          </select>
+          <button
+            onclick="insertSelectedProject()"
+            class="btn btn-primary"
+            id="insertProjectBtn"
+            disabled
+          >
+            📥 Insérer le projet
+          </button>
+        </div>
+
+        <!-- Project Details -->
+        <div id="projectDetails" style="display: none">
+          <!-- Project Info -->
+          <div class="section">
+            <div class="project-info" id="projectInfo"></div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="section notes-section">
+            <h3>
+              📝 Notes de recherche
+              <span id="notesCount" class="badge badge-blue">0</span>
+            </h3>
+            <div id="notesList" class="items-list"></div>
+          </div>
+
+          <!-- Interpretations Section -->
+          <div class="section interpretations-section">
+            <h3>
+              🧠 Interprétations
+              <span id="interpretationsCount" class="badge badge-green">0</span>
+            </h3>
+            <div id="interpretationsList" class="items-list"></div>
+          </div>
+
+          <!-- Resources Section -->
+          <div class="section resources-section">
+            <h3>
+              🖼️ Ressources
+              <span id="resourcesCount" class="badge badge-orange">0</span>
+            </h3>
+            <div id="resourcesList" class="items-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div id="status" class="status"></div>
+    </div>
+
+    <?!= include('script'); ?>
+  </body>
+</html>
