@@ -316,7 +316,7 @@
   }
 
   // Afficher un statut
-  function showStatus(message, isError) {
+  function showStatus(message, isError = false) {
     const status = document.getElementById("status");
     status.textContent = message;
     status.className = isError ? "status error show" : "status show";
@@ -324,5 +324,78 @@
     setTimeout(() => {
       status.className = status.className.replace("show", "");
     }, 3000);
+  }
+
+  // === FONCTIONS IA ===
+
+  // Générer une réponse IA
+  function generateAI() {
+    const prompt = document.getElementById("aiPrompt").value.trim();
+    
+    if (!prompt) {
+      showAIStatus("Veuillez saisir une question", "error");
+      return;
+    }
+
+    if (!currentProject) {
+      showAIStatus("Veuillez sélectionner un projet", "error");
+      return;
+    }
+
+    // UI feedback
+    const btn = document.getElementById("generateAIBtn");
+    btn.disabled = true;
+    btn.classList.add("generating");
+    btn.textContent = "🤖 Génération en cours...";
+    
+    showAIStatus("🧠 L'IA analyse votre question...", "loading");
+
+    // Appel vers Google Apps Script
+    google.script.run
+      .withSuccessHandler(onAIGenerated)
+      .withFailureHandler(onAIError)
+      .generateAndInsertAI(prompt, currentProject.id, currentProject.title);
+  }
+
+  // Callback: IA générée avec succès
+  function onAIGenerated(result) {
+    resetAIButton();
+    
+    if (result.success) {
+      showAIStatus("✅ Réponse IA insérée dans le document!", "success");
+      document.getElementById("aiPrompt").value = ""; // Vider le prompt
+      showStatus("Réponse IA insérée avec succès!");
+    } else {
+      showAIStatus(`❌ Erreur: ${result.error}`, "error");
+      showStatus(result.error, true);
+    }
+  }
+
+  // Callback: erreur IA
+  function onAIError(error) {
+    resetAIButton();
+    showAIStatus(`❌ Erreur technique: ${error.message}`, "error");
+    showStatus(`Erreur IA: ${error.message}`, true);
+  }
+
+  // Réinitialiser le bouton IA
+  function resetAIButton() {
+    const btn = document.getElementById("generateAIBtn");
+    btn.disabled = false;
+    btn.classList.remove("generating");
+    btn.textContent = "✨ Générer une réponse IA";
+  }
+
+  // Afficher le statut IA
+  function showAIStatus(message, type) {
+    const status = document.getElementById("aiStatus");
+    status.textContent = message;
+    status.className = `ai-status ${type}`;
+    
+    if (type === "success") {
+      setTimeout(() => {
+        status.className = "ai-status";
+      }, 4000);
+    }
   }
 </script>

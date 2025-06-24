@@ -592,3 +592,172 @@ function showAbout() {
     ui.ButtonSet.OK
   );
 }
+
+/**
+ * Générer une réponse IA basée sur un prompt et un projet
+ */
+function generateAIResponse(prompt, projectId) {
+  try {
+    const url = `${API_BASE_URL}/ai/generate-response/${projectId}`;
+    
+    const response = UrlFetchApp.fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      payload: JSON.stringify({
+        prompt: prompt
+      })
+    });
+
+    // Accepter 200 (OK) et 201 (Created) comme succès
+    if (response.getResponseCode() === 200 || response.getResponseCode() === 201) {
+      const aiResponse = response.getContentText();
+      return {
+        success: true,
+        data: aiResponse
+      };
+    } else {
+      return {
+        success: false,
+        error: `Erreur API: ${response.getResponseCode()}`
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Insérer une réponse IA avec style amélioré
+ */
+function insertAIResponse(aiResponse, prompt, projectTitle) {
+  try {
+    const doc = DocumentApp.getActiveDocument();
+    const body = doc.getBody();
+    const cursor = doc.getCursor();
+
+    if (cursor) {
+      // Version simple pour insertion au curseur
+      const aiText = `\n🤖 IA [${projectTitle}]\n${aiResponse}\n\n`;
+      cursor.insertText(aiText);
+    } else {
+      // Ajouter un espace avant
+      body.appendParagraph("");
+
+      // === HEADER PRINCIPAL ===
+      const headerPara = body.appendParagraph("🤖 INTELLIGENCE ARTIFICIELLE");
+      headerPara.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+      headerPara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      headerPara.getChild(0).asText()
+        .setForegroundColor("#6A1B9A")
+        .setBold(true)
+        .setFontSize(16);
+
+      // === SOUS-TITRE PROJET ===
+      const projectPara = body.appendParagraph(`Projet: ${projectTitle}`);
+      projectPara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      projectPara.getChild(0).asText()
+        .setForegroundColor("#424242")
+        .setItalic(true)
+        .setFontSize(12);
+
+      // === LIGNE DE SÉPARATION ===
+      const separatorPara = body.appendParagraph("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      separatorPara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      separatorPara.getChild(0).asText()
+        .setForegroundColor("#AB47BC")
+        .setBold(true);
+
+      // === CONTENU IA DIRECTEMENT ===
+      const responseTable = body.appendTable([[aiResponse]]);
+      const responseCell = responseTable.getRow(0).getCell(0);
+      
+      // Style de la réponse
+      responseCell.setBackgroundColor("#FCE4EC");
+      responseCell.getChild(0).asText()
+        .setForegroundColor("#1A1A1A")
+        .setFontSize(11)
+        .setLineSpacing(1.6);
+      
+      // Padding généreux
+      responseCell.setPaddingTop(20);
+      responseCell.setPaddingBottom(20);
+      responseCell.setPaddingLeft(24);
+      responseCell.setPaddingRight(24);
+      
+      // Bordure élégante
+      responseTable.setBorderColor("#F8BBD9");
+      responseTable.setBorderWidth(1);
+
+      // === FOOTER AVEC DATE ===
+      const createdDate = new Date();
+      const footerTable = body.appendTable([
+        [`🕒 Généré le ${createdDate.toLocaleDateString("fr-FR")} à ${createdDate.toLocaleTimeString("fr-FR", {hour: '2-digit', minute:'2-digit'})}`]
+      ]);
+      
+      const footerCell = footerTable.getRow(0).getCell(0);
+      footerCell.setBackgroundColor("#F3E5F5");
+      footerCell.getChild(0).asText()
+        .setForegroundColor("#7B1FA2")
+        .setItalic(true)
+        .setFontSize(9)
+        .setFontFamily("Google Sans");
+      
+      footerCell.setPaddingTop(8);
+      footerCell.setPaddingBottom(8);
+      footerCell.setPaddingLeft(16);
+      footerCell.setPaddingRight(16);
+      footerTable.setBorderWidth(0);
+
+      // Espacement final
+      body.appendParagraph("");
+      body.appendParagraph("");
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Fonction appelée depuis la sidebar pour générer et insérer une réponse IA
+ */
+function generateAndInsertAI(prompt, projectId, projectTitle) {
+  try {
+    // Générer la réponse IA
+    const aiResult = generateAIResponse(prompt, projectId);
+    
+    if (!aiResult.success) {
+      return {
+        success: false,
+        error: `Erreur génération IA: ${aiResult.error}`
+      };
+    }
+
+    // Insérer la réponse dans le document
+    const insertResult = insertAIResponse(aiResult.data, prompt, projectTitle);
+    
+    if (!insertResult.success) {
+      return {
+        success: false,
+        error: `Erreur insertion: ${insertResult.error}`
+      };
+    }
+
+    return {
+      success: true,
+      message: "Réponse IA générée et insérée avec succès!"
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}

@@ -84,6 +84,27 @@
             </h3>
             <div id="resourcesList" class="items-list"></div>
           </div>
+
+          <!-- AI Section -->
+          <div class="section ai-section">
+            <h3>🤖 Assistant IA</h3>
+            <div class="ai-container">
+              <textarea
+                id="aiPrompt"
+                class="textarea"
+                placeholder="Posez votre question sur ce projet..."
+                rows="3"
+              ></textarea>
+              <button
+                onclick="generateAI()"
+                class="btn btn-ai"
+                id="generateAIBtn"
+              >
+                ✨ Générer une réponse IA
+              </button>
+              <div id="aiStatus" class="ai-status"></div>
+            </div>
+          </div>
         </div>
       </div>
 
