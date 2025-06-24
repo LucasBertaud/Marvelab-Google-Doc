@@ -38,11 +38,13 @@ export class ProjectsService {
   async findOneWithRelations(id: string): Promise<Project> {
     const project = await this.projectRepository.findOne({
       where: { id },
-      relations: ['notes', 'interpretations', 'resources'],
+      relations: ['notes', 'interpretations', 'resources', 'methodologies', 'experiments'],
       order: {
         notes: { created_at: 'DESC' },
         interpretations: { created_at: 'DESC' },
         resources: { created_at: 'DESC' },
+        methodologies: { created_at: 'DESC' },
+        experiments: { created_at: 'DESC' },
       },
     });
     

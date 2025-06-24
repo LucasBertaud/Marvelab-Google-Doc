@@ -5,6 +5,8 @@ import { ProjectsService } from '../projects/projects.service';
 import { Project } from 'src/projects/entities/project.entity';
 import { Note } from 'src/notes/entities/note.entity';
 import { Interpretation } from 'src/interpretations/entities/interpretation.entity';
+import { Methodology } from 'src/methodologies/entities/methodology.entity';
+import { Experiment } from 'src/experiments/entities/experiment.entity';
 
 @Injectable()
 export class AiService {
@@ -39,7 +41,9 @@ export class AiService {
       `Nom du projet : ${project.title}\n` +
       `Description du projet : ${project.description}\n` +
       `Notes : ${project.notes.map((note: Note, index: number) => `${index + 1} : ${note.content}`).join('\n')}\n` +
-      `Interprétations : ${project.interpretations.map((interpretation: Interpretation, index: number) => `${index + 1} : ${interpretation.content}\n`).join('\n')}\n`
+      `Interprétations : ${project.interpretations.map((interpretation: Interpretation, index: number) => `${index + 1} : ${interpretation.content}`).join('\n')}\n` +
+      `Méthodologies : ${project.methodologies ? project.methodologies.map((methodology: Methodology, index: number) => `${index + 1} : ${methodology.title} - ${methodology.description}`).join('\n') : 'Aucune méthodologie disponible'}\n` +
+      `Expérimentations : ${project.experiments ? project.experiments.map((experiment: Experiment, index: number) => `${index + 1} : ${experiment.title} - Protocole: ${experiment.protocol}${experiment.results ? ` - Résultats: ${experiment.results}` : ''}`).join('\n') : 'Aucune expérimentation disponible'}\n`
     );
   }
 }

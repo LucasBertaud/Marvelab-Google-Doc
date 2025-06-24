@@ -1,7 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { Note } from '../../notes/entities/note.entity';
 import { Interpretation } from '../../interpretations/entities/interpretation.entity';
 import { Resource } from '../../resources/entities/resource.entity';
+import { Methodology } from '../../methodologies/entities/methodology.entity';
+import { Experiment } from '../../experiments/entities/experiment.entity';
 
 @Entity('projects')
 export class Project {
@@ -17,12 +25,18 @@ export class Project {
   @CreateDateColumn()
   created_at: Date;
 
-  @OneToMany(() => Note, note => note.project)
+  @OneToMany(() => Note, (note) => note.project)
   notes: Note[];
 
-  @OneToMany(() => Interpretation, interpretation => interpretation.project)
+  @OneToMany(() => Interpretation, (interpretation) => interpretation.project)
   interpretations: Interpretation[];
 
-  @OneToMany(() => Resource, resource => resource.project)
+  @OneToMany(() => Resource, (resource) => resource.project)
   resources: Resource[];
+
+  @OneToMany(() => Methodology, (methodology) => methodology.project)
+  methodologies: Methodology[];
+
+  @OneToMany(() => Experiment, (experiment) => experiment.project)
+  experiments: Experiment[];
 }
