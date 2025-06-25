@@ -76,6 +76,7 @@
       displayProjectDetails(currentProject);
       displayMethodologies(currentProject.methodologies);
       displayExperiments(currentProject.experiments);
+      displayAiSuggestionsButtons();
       document.getElementById("projectDetails").style.display = "block";
       showStatus("Projet chargé avec données debug !", false);
     } else {
@@ -149,7 +150,7 @@
     const container = document.getElementById("methodologyItems");
     const countBadge = document.getElementById("methodologyCount");
     const methodologiesList = methodologies || [];
-    
+
     countBadge.textContent = methodologiesList.length;
     container.innerHTML = "";
 
@@ -164,7 +165,7 @@
     const container = document.getElementById("experimentItems");
     const countBadge = document.getElementById("experimentCount");
     const experimentsList = experiments || [];
-    
+
     countBadge.textContent = experimentsList.length;
     container.innerHTML = "";
 
@@ -179,23 +180,48 @@
     const div = document.createElement("div");
     div.className = `item item-${type}`;
 
-    const icon = type === "note" ? "📝" : type === "interpretation" ? "🧠" : type === "methodology" ? "🔬" : "🧪";
-    const typeName = type === "note" ? "Note" : type === "interpretation" ? "Interprétation" : type === "methodology" ? "Méthodologie" : "Expérimentation";
-    const color = type === "note" ? "blue" : type === "interpretation" ? "green" : type === "methodology" ? "orange" : "red";
+    const icon =
+      type === "note"
+        ? "📝"
+        : type === "interpretation"
+        ? "🧠"
+        : type === "methodology"
+        ? "🔬"
+        : "🧪";
+    const typeName =
+      type === "note"
+        ? "Note"
+        : type === "interpretation"
+        ? "Interprétation"
+        : type === "methodology"
+        ? "Méthodologie"
+        : "Expérimentation";
+    const color =
+      type === "note"
+        ? "blue"
+        : type === "interpretation"
+        ? "green"
+        : type === "methodology"
+        ? "orange"
+        : "red";
 
     div.innerHTML = `
       <div class="item-header">
         <span><strong>${icon} ${typeName} ${index + 1}</strong></span>
-        <button class="btn btn-insert btn-${color}" onclick="insert${type.charAt(0).toUpperCase() + type.slice(1)}(${index})">
+        <button class="btn btn-insert btn-${color}" onclick="insert${
+      type.charAt(0).toUpperCase() + type.slice(1)
+    }(${index})">
           📥 Insérer
         </button>
       </div>
       <div class="item-content">
-        ${type === "methodology" ? 
-          (item.description || "Aucune description") : 
-          type === "experiment" ? 
-          (item.protocol || "Aucun protocole") : 
-          (item.content || "Aucun contenu")}
+        ${
+          type === "methodology"
+            ? item.description || "Aucune description"
+            : type === "experiment"
+            ? item.protocol || "Aucun protocole"
+            : item.content || "Aucun contenu"
+        }
       </div>
       <div class="item-meta">📅 ${new Date(item.created_at).toLocaleDateString(
         "fr-FR"
@@ -252,7 +278,11 @@
 
   // Insérer une méthodologie
   function insertMethodology(index) {
-    if (!currentProject || !currentProject.methodologies || !currentProject.methodologies[index])
+    if (
+      !currentProject ||
+      !currentProject.methodologies ||
+      !currentProject.methodologies[index]
+    )
       return;
 
     const methodology = currentProject.methodologies[index];
@@ -270,7 +300,11 @@
 
   // Insérer une expérimentation
   function insertExperiment(index) {
-    if (!currentProject || !currentProject.experiments || !currentProject.experiments[index])
+    if (
+      !currentProject ||
+      !currentProject.experiments ||
+      !currentProject.experiments[index]
+    )
       return;
 
     const experiment = currentProject.experiments[index];
@@ -423,9 +457,7 @@
   // === FONCTIONS IA ===
 
   // Générer une réponse IA
-  function generateAI() {
-    const prompt = document.getElementById("aiPrompt").value.trim();
-    
+  function generateAI(prompt) {
     if (!prompt) {
       showAIStatus("Veuillez saisir une question", "error");
       return;
@@ -441,7 +473,7 @@
     btn.disabled = true;
     btn.classList.add("generating");
     btn.textContent = "🤖 Génération en cours...";
-    
+
     showAIStatus("🧠 L'IA analyse votre question...", "loading");
 
     // Appel vers Google Apps Script
@@ -454,7 +486,7 @@
   // Callback: IA générée avec succès
   function onAIGenerated(result) {
     resetAIButton();
-    
+
     if (result.success) {
       showAIStatus("✅ Réponse IA insérée dans le document!", "success");
       document.getElementById("aiPrompt").value = ""; // Vider le prompt
@@ -485,11 +517,83 @@
     const status = document.getElementById("aiStatus");
     status.textContent = message;
     status.className = `ai-status ${type}`;
-    
+
     if (type === "success") {
       setTimeout(() => {
         status.className = "ai-status";
       }, 4000);
     }
+  }
+
+  function displayAiSuggestionsButtons() {
+    const template = document.getElementById("ai-suggestions-buttons");
+    const container = document.querySelector(".ai-suggestions");
+
+    container.innerHTML = "";
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+  }
+
+  function displaySuggestionsSelector(button) {
+    const notes = currentProject.notes || [];
+    const interpretations = currentProject.interpretations || [];
+    const methodologies = currentProject.methodologies || [];
+    const experiments = currentProject.experiments || [];
+
+    const text = button.textContent;
+    const template = document.getElementById("ai-suggestions-selector");
+    const container = document.querySelector(".ai-suggestions");
+
+    container.innerHTML = "";
+    const clone = template.content.cloneNode(true);
+    clone.querySelector("h4").textContent = text;
+    clone
+      .querySelector(".suggestions-list li button")
+      .addEventListener("click", () => {
+        generateAI(
+          `Rédigez une ${text.toLowerCase()} pour le projet "${
+            currentProject.title
+          }" en utilisant les données disponibles.`
+        );
+        displayAiSuggestionsButtons();
+      });
+
+    notes.forEach((note, index) =>
+      createLiSuggestion(clone, text, index, "note", "la ")
+    );
+
+    interpretations.forEach((interpretation, index) =>
+      createLiSuggestion(clone, text, index, "interprétation", "l' ")
+    );
+
+    methodologies.forEach((methodology, index) =>
+      createLiSuggestion(clone, text, index, "méthodologie", "la ")
+    );
+
+    experiments.forEach((experiment, index) =>
+      createLiSuggestion(clone, text, index, "expérimentation", "l' ")
+    );
+
+    container.appendChild(clone);
+  }
+
+  function createLiSuggestion(
+    clone,
+    text,
+    index,
+    entityName,
+    entityParticle = "la "
+  ) {
+    const li = document.createElement("li");
+    li.innerHTML = `<button><span>${entityName}</span> ${index + 1}</button>`;
+    li.addEventListener("click", () => {
+      generateAI(
+        `Rédigez une ${text.toLowerCase()} en utilisant ${entityParticle}${entityName} ${
+          index + 1
+        }`
+      );
+      displayAiSuggestionsButtons();
+    });
+    clone.querySelector(".suggestions-list").appendChild(li);
   }
 </script>

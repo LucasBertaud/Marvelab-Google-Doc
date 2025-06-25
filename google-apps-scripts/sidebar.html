@@ -97,7 +97,9 @@
           <div class="section methodologies-section">
             <h3>
               🔬 Méthodologies
-              <span id="methodologyCount" class="badge badge-methodology">0</span>
+              <span id="methodologyCount" class="badge badge-methodology"
+                >0</span
+              >
             </h3>
             <div id="methodologyItems" class="items-list"></div>
           </div>
@@ -129,6 +131,8 @@
                 ✨ Générer une réponse IA
               </button>
               <div id="aiStatus" class="ai-status"></div>
+              <!-- Suggestions de prompts -->
+              <div class="ai-suggestions"></div>
             </div>
           </div>
         </div>
@@ -137,6 +141,58 @@
       <!-- Status -->
       <div id="status" class="status"></div>
     </div>
+
+    <!-- Templates -->
+    <template id="ai-suggestions-buttons">
+      <div class="ai-suggestions-buttons">
+        <ul>
+          <li>
+            <button onclick="displaySuggestionsSelector(this)">
+              Introduction
+            </button>
+          </li>
+          <li>
+            <button onclick="displaySuggestionsSelector(this)">
+              Explication
+            </button>
+          </li>
+          <li>
+            <button onclick="displaySuggestionsSelector(this)">
+              Conclusion
+            </button>
+          </li>
+        </ul>
+      </div>
+    </template>
+    <template id="ai-suggestions-selector">
+      <div class="ai-suggestions-selector">
+        <div class="head">
+          <h4>Introduction</h4>
+          <button onclick="displayAiSuggestionsButtons()">
+            <svg
+              width="18px"
+              height="18px"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 6L18 18M18 6L6 18"
+                stroke="#000000"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <ul class="suggestions-list">
+          <li>
+            <button>Du projet</button>
+          </li>
+        </ul>
+      </div>
+    </template>
 
     <?!= include('script'); ?>
   </body>
