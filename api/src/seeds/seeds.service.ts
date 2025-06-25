@@ -5,10 +5,14 @@ import { Project } from '../projects/entities/project.entity';
 import { Note } from '../notes/entities/note.entity';
 import { Interpretation } from '../interpretations/entities/interpretation.entity';
 import { Resource } from '../resources/entities/resource.entity';
+import { Methodology } from '../methodologies/entities/methodology.entity';
+import { Experiment } from '../experiments/entities/experiment.entity';
 import { projectsData } from './data/projects.data';
 import { notesData } from './data/notes.data';
 import { interpretationsData } from './data/interpretations.data';
 import { resourcesData } from './data/resources.data';
+import { methodologiesData } from './data/methodologies.data';
+import { experimentsData } from './data/experiments.data';
 
 @Injectable()
 export class SeedsService {
@@ -23,6 +27,10 @@ export class SeedsService {
     private interpretationRepository: Repository<Interpretation>,
     @InjectRepository(Resource)
     private resourceRepository: Repository<Resource>,
+    @InjectRepository(Methodology)
+    private methodologyRepository: Repository<Methodology>,
+    @InjectRepository(Experiment)
+    private experimentRepository: Repository<Experiment>,
   ) {}
 
   async run(): Promise<void> {
@@ -58,6 +66,18 @@ export class SeedsService {
       .createQueryBuilder()
       .delete()
       .from(Note)
+      .execute();
+
+    await this.methodologyRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Methodology)
+      .execute();
+
+    await this.experimentRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Experiment)
       .execute();
 
     await this.projectRepository
@@ -108,8 +128,31 @@ export class SeedsService {
     const resources = await this.resourceRepository.save(resourcesToCreate);
     this.logger.log(`✅ ${resources.length} ressources créées`);
 
+    // Créer les méthodologies
+    this.logger.log('🧪 Création des méthodologies...');
+    const methodologiesToCreate = methodologiesData.map((methodology) => ({
+      title: methodology.title,
+      description: methodology.description,
+      project_id: projects[methodology.projectIndex].id,
+    }));
+    const methodologies = await this.methodologyRepository.save(
+      methodologiesToCreate,
+    );
+    this.logger.log(`✅ ${methodologies.length} méthodologies créées`);
+
+    // Créer les expérimentations
+    this.logger.log('🔬 Création des expérimentations...');
+    const experimentsToCreate = experimentsData.map((experiment) => ({
+      title: experiment.title,
+      protocol: experiment.protocol,
+      results: experiment.results,
+      project_id: projects[experiment.projectIndex].id,
+    }));
+    const experiments = await this.experimentRepository.save(experimentsToCreate);
+    this.logger.log(`✅ ${experiments.length} expérimentations créées`);
+
     this.logger.log(
-      `📊 Résumé: ${projects.length} projets, ${notes.length} notes, ${interpretations.length} interprétations, ${resources.length} ressources`,
+      `📊 Résumé: ${projects.length} projets, ${notes.length} notes, ${interpretations.length} interprétations, ${resources.length} ressources, ${methodologies.length} méthodologies, ${experiments.length} expérimentations`,
     );
   }
 }

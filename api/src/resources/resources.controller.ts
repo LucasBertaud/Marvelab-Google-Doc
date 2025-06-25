@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, StreamableFile } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { Response } from 'express';
 import { ResourcesService } from './resources.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
@@ -39,6 +40,29 @@ export class ResourcesController {
   @ApiResponse({ status: 404, description: 'Ressource non trouvée' })
   findOne(@Param('id') id: string) {
     return this.resourcesService.findOne(id);
+  }
+
+  // NOUVELLE ROUTE pour servir l'image directement
+  @Get(':id/image')
+  @ApiOperation({ summary: 'Récupérer l\'image d\'une ressource directement' })
+  @ApiParam({ name: 'id', description: 'ID de la ressource' })
+  @ApiResponse({ status: 200, description: 'Image de la ressource' })
+  @ApiResponse({ status: 404, description: 'Ressource non trouvée' })
+  async getResourceImage(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const imageBuffer = await this.resourcesService.getResourceImage(id);
+      
+      // Définir les headers appropriés
+      res.set({
+        'Content-Type': 'image/jpeg', // ou déterminer automatiquement le type
+        'Content-Length': imageBuffer.length,
+        'Cache-Control': 'public, max-age=3600', // Cache pendant 1 heure
+      });
+      
+      res.send(imageBuffer);
+    } catch (error) {
+      res.status(404).json({ message: 'Image non trouvée' });
+    }
   }
 
   @Patch(':id')

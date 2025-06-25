@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marvelab Assistant</title>
+    <?!= include('styles'); ?>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <div class="header">
+        <h2>🔬 Marvelab Assistant</h2>
+        <p class="subtitle">Style coloré + Images automatiques</p>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Chargement des projets...</p>
+      </div>
+
+      <!-- Error -->
+      <div id="error" class="error" style="display: none">
+        <p id="error-message"></p>
+        <button onclick="loadProjects()" class="btn btn-primary">
+          Réessayer
+        </button>
+      </div>
+
+      <!-- Main Content -->
+      <div id="content" style="display: none">
+        <!-- Project Selection -->
+        <div class="section">
+          <h3>📁 Sélection du projet</h3>
+          <select
+            id="projectSelect"
+            class="select"
+            onchange="loadProjectDetails()"
+          >
+            <option value="">-- Choisir un projet --</option>
+          </select>
+          <button
+            onclick="insertSelectedProject()"
+            class="btn btn-primary"
+            id="insertProjectBtn"
+            disabled
+          >
+            📥 Insérer le projet
+          </button>
+          <button
+            onclick="createCoverPage()"
+            class="btn btn-secondary"
+            id="createCoverBtn"
+            disabled
+          >
+            📄 Créer page de garde + sommaire
+          </button>
+        </div>
+
+        <!-- Project Details -->
+        <div id="projectDetails" style="display: none">
+          <!-- Project Info -->
+          <div class="section">
+            <div class="project-info" id="projectInfo"></div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="section notes-section">
+            <h3>
+              📝 Notes de recherche
+              <span id="notesCount" class="badge badge-blue">0</span>
+            </h3>
+            <div id="notesList" class="items-list"></div>
+          </div>
+
+          <!-- Interpretations Section -->
+          <div class="section interpretations-section">
+            <h3>
+              🧠 Interprétations
+              <span id="interpretationsCount" class="badge badge-green">0</span>
+            </h3>
+            <div id="interpretationsList" class="items-list"></div>
+          </div>
+
+          <!-- Resources Section -->
+          <div class="section resources-section">
+            <h3>
+              🖼️ Ressources
+              <span id="resourcesCount" class="badge badge-orange">0</span>
+            </h3>
+            <div id="resourcesList" class="items-list"></div>
+          </div>
+
+          <!-- Méthodologies -->
+          <div class="section methodologies-section">
+            <h3>
+              🔬 Méthodologies
+              <span id="methodologyCount" class="badge badge-methodology"
+                >0</span
+              >
+            </h3>
+            <div id="methodologyItems" class="items-list"></div>
+          </div>
+
+          <!-- Expérimentations -->
+          <div class="section experiments-section">
+            <h3>
+              🧪 Expérimentations
+              <span id="experimentCount" class="badge badge-experiment">0</span>
+            </h3>
+            <div id="experimentItems" class="items-list"></div>
+          </div>
+
+          <!-- AI Section -->
+          <div class="section ai-section">
+            <h3>🤖 Assistant IA</h3>
+            <div class="ai-container">
+              <textarea
+                id="aiPrompt"
+                class="textarea"
+                placeholder="Posez votre question sur ce projet..."
+                rows="3"
+              ></textarea>
+              <button
+                onclick="generateAI()"
+                class="btn btn-ai"
+                id="generateAIBtn"
+              >
+                ✨ Générer une réponse IA
+              </button>
+              <div id="aiStatus" class="ai-status"></div>
+              <!-- Suggestions de prompts -->
+              <div class="ai-suggestions"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div id="status" class="status"></div>
+    </div>
+
+    <!-- Templates -->
+    <template id="ai-suggestions-buttons">
+      <div class="ai-suggestions-buttons">
+        <ul>
+          <li>
+            <button onclick="displaySuggestionsSelector(this)">
+              Introduction
+            </button>
+          </li>
+          <li>
+            <button onclick="displaySuggestionsSelector(this)">
+              Explication
+            </button>
+          </li>
+          <li>
+            <button onclick="displaySuggestionsSelector(this)">
+              Conclusion
+            </button>
+          </li>
+        </ul>
+      </div>
+    </template>
+    <template id="ai-suggestions-selector">
+      <div class="ai-suggestions-selector">
+        <div class="head">
+          <h4>Introduction</h4>
+          <button onclick="displayAiSuggestionsButtons()">
+            <svg
+              width="18px"
+              height="18px"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 6L18 18M18 6L6 18"
+                stroke="#000000"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <ul class="suggestions-list">
+          <li>
+            <button>Du projet</button>
+          </li>
+        </ul>
+      </div>
+    </template>
+
+    <?!= include('script'); ?>
+  </body>
+</html>

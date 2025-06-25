@@ -1,0 +1,599 @@
+<script>
+  let currentProject = null;
+  let projects = [];
+
+  // Charger l'application
+  document.addEventListener("DOMContentLoaded", function () {
+    loadProjects();
+  });
+
+  // Charger tous les projets
+  function loadProjects() {
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("error").style.display = "none";
+    document.getElementById("content").style.display = "none";
+
+    google.script.run
+      .withSuccessHandler(onProjectsLoaded)
+      .withFailureHandler(onError)
+      .getProjectsForSidebar();
+  }
+
+  // Callback: projets chargés
+  function onProjectsLoaded(result) {
+    document.getElementById("loading").style.display = "none";
+
+    if (result.success) {
+      projects = result.data;
+      populateProjectSelect(projects);
+      document.getElementById("content").style.display = "block";
+    } else {
+      showError(result.error);
+    }
+  }
+
+  // Peupler la liste des projets
+  function populateProjectSelect(projects) {
+    const select = document.getElementById("projectSelect");
+    select.innerHTML = '<option value="">-- Choisir un projet --</option>';
+
+    projects.forEach((project, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = project.title;
+      select.appendChild(option);
+    });
+  }
+
+  // Charger les détails d'un projet
+  function loadProjectDetails() {
+    const select = document.getElementById("projectSelect");
+    const projectIndex = select.value;
+
+    if (projectIndex === "") {
+      document.getElementById("projectDetails").style.display = "none";
+      document.getElementById("insertProjectBtn").disabled = true;
+      document.getElementById("createCoverBtn").disabled = true;
+      return;
+    }
+
+    const project = projects[projectIndex];
+    document.getElementById("insertProjectBtn").disabled = false;
+    document.getElementById("createCoverBtn").disabled = false;
+
+    showStatus("Chargement des détails...", false);
+
+    google.script.run
+      .withSuccessHandler(onProjectDetailsLoaded)
+      .withFailureHandler(onError)
+      .getProjectDetailsForSidebar(project.id);
+  }
+
+  // Callback: détails du projet chargés
+  function onProjectDetailsLoaded(result) {
+    if (result.success) {
+      currentProject = result.data;
+      displayProjectDetails(currentProject);
+      displayMethodologies(currentProject.methodologies);
+      displayExperiments(currentProject.experiments);
+      displayAiSuggestionsButtons();
+      document.getElementById("projectDetails").style.display = "block";
+      showStatus("Projet chargé avec données debug !", false);
+    } else {
+      showError(result.error);
+    }
+  }
+
+  // Afficher les détails du projet
+  function displayProjectDetails(project) {
+    // Debug: log du projet dans la console
+    console.log("Projet affiché:", project);
+
+    // Informations du projet
+    const projectInfo = document.getElementById("projectInfo");
+    projectInfo.innerHTML = `
+      <h4>${project.title}</h4>
+      <p><strong>Description:</strong> ${project.description}</p>
+      <p><strong>Créé le:</strong> ${new Date(
+        project.created_at
+      ).toLocaleDateString("fr-FR")}</p>
+      <p><strong>ID:</strong> ${project.id}</p>
+    `;
+
+    // Notes
+    const notesList = document.getElementById("notesList");
+    const notesCount = document.getElementById("notesCount");
+    const notes = project.notes || [];
+
+    notesCount.textContent = notes.length;
+    notesList.innerHTML = "";
+
+    notes.forEach((note, index) => {
+      const item = createItemElement(note, "note", index);
+      notesList.appendChild(item);
+    });
+
+    // Interprétations
+    const interpretationsList = document.getElementById("interpretationsList");
+    const interpretationsCount = document.getElementById(
+      "interpretationsCount"
+    );
+    const interpretations = project.interpretations || [];
+
+    interpretationsCount.textContent = interpretations.length;
+    interpretationsList.innerHTML = "";
+
+    interpretations.forEach((interpretation, index) => {
+      const item = createItemElement(interpretation, "interpretation", index);
+      interpretationsList.appendChild(item);
+    });
+
+    // Ressources avec debug
+    const resourcesList = document.getElementById("resourcesList");
+    const resourcesCount = document.getElementById("resourcesCount");
+    const resources = project.resources || [];
+
+    console.log("Ressources à afficher:", resources);
+
+    resourcesCount.textContent = resources.length;
+    resourcesList.innerHTML = "";
+
+    resources.forEach((resource, index) => {
+      console.log(`Ressource ${index}:`, resource);
+      const item = createResourceElement(resource, index);
+      resourcesList.appendChild(item);
+    });
+  }
+
+  // Afficher les méthodologies
+  function displayMethodologies(methodologies) {
+    const container = document.getElementById("methodologyItems");
+    const countBadge = document.getElementById("methodologyCount");
+    const methodologiesList = methodologies || [];
+
+    countBadge.textContent = methodologiesList.length;
+    container.innerHTML = "";
+
+    methodologiesList.forEach((methodology, index) => {
+      const item = createItemElement(methodology, "methodology", index);
+      container.appendChild(item);
+    });
+  }
+
+  // Afficher les expérimentations
+  function displayExperiments(experiments) {
+    const container = document.getElementById("experimentItems");
+    const countBadge = document.getElementById("experimentCount");
+    const experimentsList = experiments || [];
+
+    countBadge.textContent = experimentsList.length;
+    container.innerHTML = "";
+
+    experimentsList.forEach((experiment, index) => {
+      const item = createItemElement(experiment, "experiment", index);
+      container.appendChild(item);
+    });
+  }
+
+  // Créer un élément pour note ou interprétation
+  function createItemElement(item, type, index) {
+    const div = document.createElement("div");
+    div.className = `item item-${type}`;
+
+    const icon =
+      type === "note"
+        ? "📝"
+        : type === "interpretation"
+        ? "🧠"
+        : type === "methodology"
+        ? "🔬"
+        : "🧪";
+    const typeName =
+      type === "note"
+        ? "Note"
+        : type === "interpretation"
+        ? "Interprétation"
+        : type === "methodology"
+        ? "Méthodologie"
+        : "Expérimentation";
+    const color =
+      type === "note"
+        ? "blue"
+        : type === "interpretation"
+        ? "green"
+        : type === "methodology"
+        ? "orange"
+        : "red";
+
+    div.innerHTML = `
+      <div class="item-header">
+        <span><strong>${icon} ${typeName} ${index + 1}</strong></span>
+        <button class="btn btn-insert btn-${color}" onclick="insert${
+      type.charAt(0).toUpperCase() + type.slice(1)
+    }(${index})">
+          📥 Insérer
+        </button>
+      </div>
+      <div class="item-content">
+        ${
+          type === "methodology"
+            ? item.description || "Aucune description"
+            : type === "experiment"
+            ? item.protocol || "Aucun protocole"
+            : item.content || "Aucun contenu"
+        }
+      </div>
+      <div class="item-meta">📅 ${new Date(item.created_at).toLocaleDateString(
+        "fr-FR"
+      )}</div>
+    `;
+
+    return div;
+  }
+
+  // Créer un élément pour ressource avec affichage de l'URL
+  function createResourceElement(resource, index) {
+    const div = document.createElement("div");
+    div.className = "item item-resource";
+
+    const typeIcon =
+      resource.type === "image"
+        ? "🖼️"
+        : resource.type === "graph"
+        ? "📊"
+        : "📎";
+
+    // Debug dans la console
+    console.log(`Création élément ressource ${index}:`, {
+      type: resource.type,
+      url: resource.url,
+      alt_text: resource.alt_text,
+    });
+
+    div.innerHTML = `
+      <div class="item-header">
+        <span><strong>${typeIcon} Ressource ${
+      index + 1
+    }</strong> <span class="resource-type">${resource.type}</span></span>
+        <button class="btn btn-insert btn-orange" onclick="insertResource(${index})">
+          📥 Insérer avec image
+        </button>
+      </div>
+      <div class="item-content">
+        <strong>Description:</strong> ${
+          resource.alt_text || "Aucune description"
+        }<br>
+        <strong>Type:</strong> ${resource.type}<br>
+        <strong>URL:</strong> <span class="url-display">${
+          resource.url || "Aucune URL"
+        }</span>
+        <div class="item-meta">📅 ${new Date(
+          resource.created_at
+        ).toLocaleString("fr-FR")}</div>
+      </div>
+    `;
+
+    return div;
+  }
+
+  // Insérer une méthodologie
+  function insertMethodology(index) {
+    if (
+      !currentProject ||
+      !currentProject.methodologies ||
+      !currentProject.methodologies[index]
+    )
+      return;
+
+    const methodology = currentProject.methodologies[index];
+    showStatus("Insertion de la méthodologie...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Méthodologie insérée avec succès !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertMethodology(methodology, currentProject.title);
+  }
+
+  // Insérer une expérimentation
+  function insertExperiment(index) {
+    if (
+      !currentProject ||
+      !currentProject.experiments ||
+      !currentProject.experiments[index]
+    )
+      return;
+
+    const experiment = currentProject.experiments[index];
+    showStatus("Insertion de l'expérimentation...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Expérimentation insérée avec succès !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertExperiment(experiment, currentProject.title);
+  }
+
+  // Insérer le projet sélectionné
+  function insertSelectedProject() {
+    if (!currentProject) return;
+
+    showStatus("Insertion du projet...", false);
+
+    google.script.run
+      .withSuccessHandler(() => showStatus("Projet inséré !", false))
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertProject(currentProject);
+  }
+
+  // Créer une page de garde avec sommaire
+  function createCoverPage() {
+    if (!currentProject) return;
+
+    showStatus("Création de la page de garde...", false);
+
+    google.script.run
+      .withSuccessHandler(onCoverPageCreated)
+      .withFailureHandler(onCoverPageError)
+      .createCoverPageWithSummary(currentProject.id);
+  }
+
+  // Callback: page de garde créée
+  function onCoverPageCreated(result) {
+    if (result.success) {
+      showStatus("📄 Page de garde créée avec succès!", false);
+    } else {
+      showStatus(`Erreur: ${result.error}`, true);
+    }
+  }
+
+  // Callback: erreur page de garde
+  function onCoverPageError(error) {
+    showStatus(`Erreur: ${error.message}`, true);
+  }
+
+  // Insérer une note
+  function insertNote(index) {
+    if (
+      !currentProject ||
+      !currentProject.notes ||
+      !currentProject.notes[index]
+    )
+      return;
+
+    const note = currentProject.notes[index];
+    showStatus("Insertion de la note avec style bleu...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Note insérée avec style coloré !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertNote(note, currentProject.title);
+  }
+
+  // Insérer une interprétation
+  function insertInterpretation(index) {
+    if (
+      !currentProject ||
+      !currentProject.interpretations ||
+      !currentProject.interpretations[index]
+    )
+      return;
+
+    const interpretation = currentProject.interpretations[index];
+    showStatus("Insertion de l'interprétation avec style vert...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Interprétation insérée avec style coloré !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertInterpretation(interpretation, currentProject.title);
+  }
+
+  // Insérer une ressource
+  function insertResource(index) {
+    if (
+      !currentProject ||
+      !currentProject.resources ||
+      !currentProject.resources[index]
+    )
+      return;
+
+    const resource = currentProject.resources[index];
+    console.log("Insertion ressource:", resource);
+    showStatus(
+      "Insertion de la ressource avec conversion URL → Image...",
+      false
+    );
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Ressource insérée avec image !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertResource(resource, currentProject.title);
+  }
+
+  // Afficher une erreur
+  function showError(message) {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("content").style.display = "none";
+    document.getElementById("error").style.display = "block";
+    document.getElementById("error-message").textContent = message;
+  }
+
+  // Callback d'erreur générique
+  function onError(error) {
+    showError(error.message || "Une erreur est survenue");
+  }
+
+  // Afficher un statut
+  function showStatus(message, isError = false) {
+    const status = document.getElementById("status");
+    status.textContent = message;
+    status.className = isError ? "status error show" : "status show";
+
+    setTimeout(() => {
+      status.className = status.className.replace("show", "");
+    }, 3000);
+  }
+
+  // === FONCTIONS IA ===
+
+  // Générer une réponse IA
+  function generateAI(prompt) {
+    if (!prompt) {
+      showAIStatus("Veuillez saisir une question", "error");
+      return;
+    }
+
+    if (!currentProject) {
+      showAIStatus("Veuillez sélectionner un projet", "error");
+      return;
+    }
+
+    // UI feedback
+    const btn = document.getElementById("generateAIBtn");
+    btn.disabled = true;
+    btn.classList.add("generating");
+    btn.textContent = "🤖 Génération en cours...";
+
+    showAIStatus("🧠 L'IA analyse votre question...", "loading");
+
+    // Appel vers Google Apps Script
+    google.script.run
+      .withSuccessHandler(onAIGenerated)
+      .withFailureHandler(onAIError)
+      .generateAndInsertAI(prompt, currentProject.id, currentProject.title);
+  }
+
+  // Callback: IA générée avec succès
+  function onAIGenerated(result) {
+    resetAIButton();
+
+    if (result.success) {
+      showAIStatus("✅ Réponse IA insérée dans le document!", "success");
+      document.getElementById("aiPrompt").value = ""; // Vider le prompt
+      showStatus("Réponse IA insérée avec succès!");
+    } else {
+      showAIStatus(`❌ Erreur: ${result.error}`, "error");
+      showStatus(result.error, true);
+    }
+  }
+
+  // Callback: erreur IA
+  function onAIError(error) {
+    resetAIButton();
+    showAIStatus(`❌ Erreur technique: ${error.message}`, "error");
+    showStatus(`Erreur IA: ${error.message}`, true);
+  }
+
+  // Réinitialiser le bouton IA
+  function resetAIButton() {
+    const btn = document.getElementById("generateAIBtn");
+    btn.disabled = false;
+    btn.classList.remove("generating");
+    btn.textContent = "✨ Générer une réponse IA";
+  }
+
+  // Afficher le statut IA
+  function showAIStatus(message, type) {
+    const status = document.getElementById("aiStatus");
+    status.textContent = message;
+    status.className = `ai-status ${type}`;
+
+    if (type === "success") {
+      setTimeout(() => {
+        status.className = "ai-status";
+      }, 4000);
+    }
+  }
+
+  function displayAiSuggestionsButtons() {
+    const template = document.getElementById("ai-suggestions-buttons");
+    const container = document.querySelector(".ai-suggestions");
+
+    container.innerHTML = "";
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+  }
+
+  function displaySuggestionsSelector(button) {
+    const notes = currentProject.notes || [];
+    const interpretations = currentProject.interpretations || [];
+    const methodologies = currentProject.methodologies || [];
+    const experiments = currentProject.experiments || [];
+
+    const text = button.textContent;
+    const template = document.getElementById("ai-suggestions-selector");
+    const container = document.querySelector(".ai-suggestions");
+
+    container.innerHTML = "";
+    const clone = template.content.cloneNode(true);
+    clone.querySelector("h4").textContent = text;
+    clone
+      .querySelector(".suggestions-list li button")
+      .addEventListener("click", () => {
+        generateAI(
+          `Rédigez une ${text.toLowerCase()} pour le projet "${
+            currentProject.title
+          }" en utilisant les données disponibles.`
+        );
+        displayAiSuggestionsButtons();
+      });
+
+    notes.forEach((note, index) =>
+      createLiSuggestion(clone, text, index, "note", "la ")
+    );
+
+    interpretations.forEach((interpretation, index) =>
+      createLiSuggestion(clone, text, index, "interprétation", "l' ")
+    );
+
+    methodologies.forEach((methodology, index) =>
+      createLiSuggestion(clone, text, index, "méthodologie", "la ")
+    );
+
+    experiments.forEach((experiment, index) =>
+      createLiSuggestion(clone, text, index, "expérimentation", "l' ")
+    );
+
+    container.appendChild(clone);
+  }
+
+  function createLiSuggestion(
+    clone,
+    text,
+    index,
+    entityName,
+    entityParticle = "la "
+  ) {
+    const li = document.createElement("li");
+    li.innerHTML = `<button><span>${entityName}</span> ${index + 1}</button>`;
+    li.addEventListener("click", () => {
+      generateAI(
+        `Rédigez une ${text.toLowerCase()} en utilisant ${entityParticle}${entityName} ${
+          index + 1
+        }`
+      );
+      displayAiSuggestionsButtons();
+    });
+    clone.querySelector(".suggestions-list").appendChild(li);
+  }
+</script>
