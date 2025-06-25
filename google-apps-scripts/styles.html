@@ -153,13 +153,13 @@
   }
 
   .btn-secondary {
-    background: linear-gradient(135deg, #4C566A 0%, #5E81AC 100%);
+    background: linear-gradient(135deg, #4c566a 0%, #5e81ac 100%);
     color: white;
-    border: 1px solid #D8DEE9;
+    border: 1px solid #d8dee9;
   }
 
   .btn-secondary:hover {
-    background: linear-gradient(135deg, #434C5E 0%, #5E81AC 100%);
+    background: linear-gradient(135deg, #434c5e 0%, #5e81ac 100%);
     box-shadow: 0 3px 10px rgba(76, 86, 106, 0.3);
   }
 
@@ -505,9 +505,67 @@
     animation: aiGradient 2s ease infinite;
   }
 
+  .ai-suggestions ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .ai-suggestions ul li {
+    list-style: none;
+  }
+
+  .ai-suggestions ul li button {
+    --color: #9c27b0;
+    --hover: #e91e63;
+    background: none;
+    border: 2px solid;
+    font: inherit;
+    line-height: 1;
+    padding: 0.75em 1em;
+    color: var(--color);
+    transition: 0.25s;
+    cursor: pointer;
+    &:hover,
+    &:focus {
+      border-color: var(--hover);
+      color: var(--hover);
+    }
+  }
+
+  .ai-suggestions ul li button:hover,
+  .ai-suggestions ul li button:focus {
+    box-shadow: 0 0.5em 0.5em -0.4em var(--hover);
+    transform: translateY(-0.25em);
+  }
+
+  .ai-suggestions-selector .head {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 12px 0;
+  }
+
+  .ai-suggestions-selector .head button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .ai-suggestions-selector ul li button span {
+    text-transform: capitalize;
+  }
+
   @keyframes aiGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 </style>
