@@ -967,3 +967,144 @@ function createCoverPageWithSummary(projectId) {
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Insérer une méthodologie avec style amélioré
+ */
+function insertMethodology(methodologyData, projectTitle) {
+  try {
+    const doc = DocumentApp.getActiveDocument();
+    const body = doc.getBody();
+    const cursor = doc.getCursor();
+
+    if (cursor) {
+      // Mode curseur - insertion simple
+      const methodText = `\n🔬 MÉTHODOLOGIE [${projectTitle}]\nTitre: ${methodologyData.title}\nDescription: ${methodologyData.description}\n📅 ${new Date(methodologyData.created_at).toLocaleString("fr-FR")}\n\n`;
+      cursor.insertText(methodText);
+    } else {
+      // Mode tableau stylé avec thème vert
+      const titleTable = body.appendTable([
+        [`🔬 MÉTHODOLOGIE DE RECHERCHE - ${projectTitle}`]
+      ]);
+      
+      const titleCell = titleTable.getRow(0).getCell(0);
+      titleCell.setBackgroundColor("#2E7D32");
+      titleCell.getChild(0).asText()
+        .setBold(true)
+        .setForegroundColor("#FFFFFF")
+        .setFontSize(14);
+      titleCell.setPaddingTop(12);
+      titleCell.setPaddingBottom(12);
+      titleCell.setPaddingLeft(16);
+      titleCell.setPaddingRight(16);
+      titleTable.setBorderWidth(0);
+      
+      // Tableau d'informations
+      const infoTable = body.appendTable([
+        [`Titre:`, methodologyData.title],
+        [`Description:`, methodologyData.description],
+        [`Date de création:`, new Date(methodologyData.created_at).toLocaleString("fr-FR")]
+      ]);
+      
+      infoTable.setBorderWidth(1);
+      infoTable.setBorderColor("#A5D6A7");
+      
+      for (let i = 0; i < infoTable.getNumRows(); i++) {
+        const row = infoTable.getRow(i);
+        const labelCell = row.getCell(0);
+        const contentCell = row.getCell(1);
+        
+        labelCell.setBackgroundColor("#E8F5E8");
+        labelCell.getChild(0).asText()
+          .setBold(true)
+          .setForegroundColor("#2E7D32");
+        
+        contentCell.setBackgroundColor("#F1F8E9");
+        contentCell.getChild(0).asText()
+          .setForegroundColor("#1B5E20");
+        
+        if (i === 0) contentCell.getChild(0).asText().setBold(true);
+        if (i === 1) contentCell.getChild(0).asText().setItalic(true);
+      }
+      
+      body.appendParagraph("");
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Insérer une expérimentation avec style amélioré
+ */
+function insertExperiment(experimentData, projectTitle) {
+  try {
+    const doc = DocumentApp.getActiveDocument();
+    const body = doc.getBody();
+    const cursor = doc.getCursor();
+
+    if (cursor) {
+      // Mode curseur - insertion simple
+      const expText = `\n🧪 EXPÉRIMENTATION [${projectTitle}]\nTitre: ${experimentData.title}\nProtocole: ${experimentData.protocol}\n${experimentData.results ? `Résultats: ${experimentData.results}\n` : ''}📅 ${new Date(experimentData.created_at).toLocaleString("fr-FR")}\n\n`;
+      cursor.insertText(expText);
+    } else {
+      // Mode tableau stylé avec thème violet
+      const titleTable = body.appendTable([
+        [`🧪 EXPÉRIMENTATION SCIENTIFIQUE - ${projectTitle}`]
+      ]);
+      
+      const titleCell = titleTable.getRow(0).getCell(0);
+      titleCell.setBackgroundColor("#7B1FA2");
+      titleCell.getChild(0).asText()
+        .setBold(true)
+        .setForegroundColor("#FFFFFF")
+        .setFontSize(14);
+      titleCell.setPaddingTop(12);
+      titleCell.setPaddingBottom(12);
+      titleCell.setPaddingLeft(16);
+      titleCell.setPaddingRight(16);
+      titleTable.setBorderWidth(0);
+      
+      // Tableau d'informations
+      const infoRows = [
+        [`Titre:`, experimentData.title],
+        [`Protocole:`, experimentData.protocol],
+        [`Date de création:`, new Date(experimentData.created_at).toLocaleString("fr-FR")]
+      ];
+      
+      if (experimentData.results) {
+        infoRows.splice(2, 0, [`Résultats:`, experimentData.results]);
+      }
+      
+      const infoTable = body.appendTable(infoRows);
+      infoTable.setBorderWidth(1);
+      infoTable.setBorderColor("#CE93D8");
+      
+      for (let i = 0; i < infoTable.getNumRows(); i++) {
+        const row = infoTable.getRow(i);
+        const labelCell = row.getCell(0);
+        const contentCell = row.getCell(1);
+        
+        labelCell.setBackgroundColor("#F3E5F5");
+        labelCell.getChild(0).asText()
+          .setBold(true)
+          .setForegroundColor("#7B1FA2");
+        
+        contentCell.setBackgroundColor("#FCE4EC");
+        contentCell.getChild(0).asText()
+          .setForegroundColor("#4A148C");
+        
+        if (i === 0) contentCell.getChild(0).asText().setBold(true);
+        if (i === 1 || (experimentData.results && i === 2)) contentCell.getChild(0).asText().setItalic(true);
+      }
+      
+      body.appendParagraph("");
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}

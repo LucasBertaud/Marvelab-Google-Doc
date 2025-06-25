@@ -54,6 +54,14 @@
     border-left: 4px solid #ff9800;
   }
 
+  .methodologies-section {
+    border-left: 4px solid #4caf50;
+  }
+
+  .experiments-section {
+    border-left: 4px solid #9c27b0;
+  }
+
   .section h3 {
     margin: 0 0 12px 0;
     font-size: 14px;
@@ -84,6 +92,17 @@
 
   .badge-orange {
     background: #ff9800;
+  }
+
+  /* Badges méthodologies et expérimentations */
+  .badge-methodology {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    color: white;
+  }
+
+  .badge-experiment {
+    background: linear-gradient(135deg, #7b1fa2, #9c27b0);
+    color: white;
   }
 
   .select {
@@ -166,6 +185,39 @@
     color: white;
   }
 
+  /* Boutons d'insertion */
+  .btn-insert-methodology {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-insert-methodology:hover {
+    background: linear-gradient(135deg, #1b5e20, #2e7d32);
+    transform: translateY(-1px);
+  }
+
+  .btn-insert-experiment {
+    background: linear-gradient(135deg, #7b1fa2, #9c27b0);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-insert-experiment:hover {
+    background: linear-gradient(135deg, #4a148c, #7b1fa2);
+    transform: translateY(-1px);
+  }
+
   .project-info {
     background: linear-gradient(135deg, #eceff4 0%, #d8dee9 100%);
     padding: 12px;
@@ -225,6 +277,26 @@
   .item-resource:hover {
     border-left-color: #f57c00;
     box-shadow: 0 2px 12px rgba(255, 152, 0, 0.2);
+  }
+
+  .item-methodology {
+    border-left: 3px solid #4caf50;
+    background: linear-gradient(135deg, #f1f8e9, #e8f5e8);
+  }
+
+  .item-methodology:hover {
+    border-left-color: #2e7d32;
+    box-shadow: 0 2px 12px rgba(76, 175, 80, 0.2);
+  }
+
+  .item-experiment {
+    border-left: 3px solid #9c27b0;
+    background: linear-gradient(135deg, #f3e5f5, #fce4ec);
+  }
+
+  .item-experiment:hover {
+    border-left-color: #7b1fa2;
+    box-shadow: 0 2px 12px rgba(156, 39, 176, 0.2);
   }
 
   .item-header {

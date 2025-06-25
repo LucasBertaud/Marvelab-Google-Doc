@@ -74,6 +74,8 @@
     if (result.success) {
       currentProject = result.data;
       displayProjectDetails(currentProject);
+      displayMethodologies(currentProject.methodologies);
+      displayExperiments(currentProject.experiments);
       document.getElementById("projectDetails").style.display = "block";
       showStatus("Projet chargé avec données debug !", false);
     } else {
@@ -142,34 +144,62 @@
     });
   }
 
+  // Afficher les méthodologies
+  function displayMethodologies(methodologies) {
+    const container = document.getElementById("methodologyItems");
+    const countBadge = document.getElementById("methodologyCount");
+    const methodologiesList = methodologies || [];
+    
+    countBadge.textContent = methodologiesList.length;
+    container.innerHTML = "";
+
+    methodologiesList.forEach((methodology, index) => {
+      const item = createItemElement(methodology, "methodology", index);
+      container.appendChild(item);
+    });
+  }
+
+  // Afficher les expérimentations
+  function displayExperiments(experiments) {
+    const container = document.getElementById("experimentItems");
+    const countBadge = document.getElementById("experimentCount");
+    const experimentsList = experiments || [];
+    
+    countBadge.textContent = experimentsList.length;
+    container.innerHTML = "";
+
+    experimentsList.forEach((experiment, index) => {
+      const item = createItemElement(experiment, "experiment", index);
+      container.appendChild(item);
+    });
+  }
+
   // Créer un élément pour note ou interprétation
   function createItemElement(item, type, index) {
     const div = document.createElement("div");
     div.className = `item item-${type}`;
 
-    const icon = type === "note" ? "📝" : "🧠";
-    const typeName = type === "note" ? "Note" : "Interprétation";
-    const color = type === "note" ? "blue" : "green";
+    const icon = type === "note" ? "📝" : type === "interpretation" ? "🧠" : type === "methodology" ? "🔬" : "🧪";
+    const typeName = type === "note" ? "Note" : type === "interpretation" ? "Interprétation" : type === "methodology" ? "Méthodologie" : "Expérimentation";
+    const color = type === "note" ? "blue" : type === "interpretation" ? "green" : type === "methodology" ? "orange" : "red";
 
     div.innerHTML = `
       <div class="item-header">
         <span><strong>${icon} ${typeName} ${index + 1}</strong></span>
-        <button class="btn btn-insert btn-${color}" onclick="insert${
-      type.charAt(0).toUpperCase() + type.slice(1)
-    }(${index})">
+        <button class="btn btn-insert btn-${color}" onclick="insert${type.charAt(0).toUpperCase() + type.slice(1)}(${index})">
           📥 Insérer
         </button>
       </div>
       <div class="item-content">
-        ${
-          item.content.length > 120
-            ? item.content.substring(0, 120) + "..."
-            : item.content
-        }
-        <div class="item-meta">📅 ${new Date(item.created_at).toLocaleString(
-          "fr-FR"
-        )}</div>
+        ${type === "methodology" ? 
+          (item.description || "Aucune description") : 
+          type === "experiment" ? 
+          (item.protocol || "Aucun protocole") : 
+          (item.content || "Aucun contenu")}
       </div>
+      <div class="item-meta">📅 ${new Date(item.created_at).toLocaleDateString(
+        "fr-FR"
+      )}</div>
     `;
 
     return div;
@@ -218,6 +248,42 @@
     `;
 
     return div;
+  }
+
+  // Insérer une méthodologie
+  function insertMethodology(index) {
+    if (!currentProject || !currentProject.methodologies || !currentProject.methodologies[index])
+      return;
+
+    const methodology = currentProject.methodologies[index];
+    showStatus("Insertion de la méthodologie...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Méthodologie insérée avec succès !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertMethodology(methodology, currentProject.title);
+  }
+
+  // Insérer une expérimentation
+  function insertExperiment(index) {
+    if (!currentProject || !currentProject.experiments || !currentProject.experiments[index])
+      return;
+
+    const experiment = currentProject.experiments[index];
+    showStatus("Insertion de l'expérimentation...", false);
+
+    google.script.run
+      .withSuccessHandler(() =>
+        showStatus("Expérimentation insérée avec succès !", false)
+      )
+      .withFailureHandler((error) =>
+        showStatus("Erreur: " + error.message, true)
+      )
+      .insertExperiment(experiment, currentProject.title);
   }
 
   // Insérer le projet sélectionné
