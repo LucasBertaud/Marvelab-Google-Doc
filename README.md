@@ -38,6 +38,7 @@ Interface web complémentaire développée avec Nuxt.js.
 3. **Configuration de l'API**
    - Naviguer vers le dossier `api`
    - Copier `.env.example` vers `.env` et ajuster les paramètres si nécessaire
+   - **Important** : Ajouter votre propre clé API Gemini dans le fichier `.env` avec la variable `GEMINI_API_KEY=VOTRE_CLE_API`
    - Installer les dépendances :
      ```
      npm install
