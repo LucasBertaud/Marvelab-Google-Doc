@@ -2,7 +2,7 @@
 
 ## Présentation du Projet
 
-Marvelab Google Doc est une extension pour Google Docs qui permet d'intégrer des fonctionnalités Marvel dans vos documents. Cette extension facilite l'accès aux informations sur les personnages, comics et autres éléments de l'univers Marvel directement depuis votre document Google.
+Marvelab Assistant est une extension pour Google Docs conçue pour les chercheurs scientifiques. Elle permet d'intégrer facilement des projets de recherche, des notes, des méthodologies et des interprétations directement dans vos documents. Grâce à son assistant IA intégré, vous pouvez poser des questions sur vos projets et générer du contenu pertinent, tout en maintenant une mise en forme professionnelle et cohérente pour vos travaux académiques.
 
 ## Structure du Projet
 
